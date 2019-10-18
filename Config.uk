@@ -14,3 +14,15 @@ menuconfig LIBNNPACK
 	select LIBPTHREADPOOL
         default n
 
+if LIBNNPACK
+choice 
+	prompt "Backend"
+	default LIBNNPACK_BACKEND_PSIMD
+
+config LIBNNPACK_BACKEND_PSIMD
+	bool "PSIMD backend"
+
+config LIBNNPACK_BACKEND_SCALAR
+	bool "Scalar backend
+endchoice
+endif
