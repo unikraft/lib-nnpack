@@ -1,0 +1,16 @@
+menuconfig LIBNNPACK
+	bool "nnpack - Acceleration package for neural networks on multi-core CPUs"
+	select LIBCXX
+	select LIBPTHREAD_EMBEDDED
+	select CXX_THREADS
+	select LIBPOSIX_USER
+	select UKSYSINFO
+	select LIBINTEL_INTRINSICS
+	select LIBFP16
+	select LIBFXDIV
+	select LIBPSIMD
+	select LIBUKMMAP
+	select LIBNEWLIBC
+	select LIBPTHREADPOOL
+        default n
+
