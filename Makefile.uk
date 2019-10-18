@@ -1,0 +1,177 @@
+#  SPDX-License-Identifier: BSD-3-Clause
+#
+#  NNPACK Makefile.uk
+#
+#  Authors: Vlad-Andrei Badoiu <vlad_andrei.badoiu@stud.acs.upb.ro>
+#
+#  Copyright (c) 2019, University Politehnica of Bucharest. All rights reserved.
+#
+#  Redistribution and use in source and binary forms, with or without
+#  modification, are permitted provided that the following conditions
+#  are met:
+#
+#  1. Redistributions of source code must retain the above copyright
+#     notice, this list of conditions and the following disclaimer.
+#  2. Redistributions in binary form must reproduce the above copyright
+#     notice, this list of conditions and the following disclaimer in the
+#     documentation and/or other materials provided with the distribution.
+#  3. Neither the name of the copyright holder nor the names of its
+#     contributors may be used to endorse or promote products derived from
+#     this software without specific prior written permission.
+#
+#  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+#  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+#  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+#  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+#  LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+#  CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+#  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+#  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+#  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+#  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+#  POSSIBILITY OF SUCH DAMAGE.
+#
+#  THIS HEADER MAY NOT BE EXTRACTED OR MODIFIED IN ANY WAY.
+#
+
+################################################################################
+# Library registration
+################################################################################
+$(eval $(call addlib_s,libnnpack,$(CONFIG_LIBNNPACK)))
+
+################################################################################
+# Sources
+################################################################################
+LIBNNPACK_VERSION=24b55303f5cf65d75844714513a0d1b1409809bd
+LIBNNPACK_URL=https://github.com/Maratyszcza/NNPACK/archive/$(LIBNNPACK_VERSION).zip
+LIBNNPACK_PATCHDIR=$(LIBNNPACK_BASE)/patches
+$(eval $(call fetch,libnnpack,$(LIBNNPACK_URL)))
+
+################################################################################
+# Helpers
+################################################################################
+LIBNNPACK_SUBDIR=NNPACK-$(LIBNNPACK_VERSION)
+LIBNNPACK_SRC = $(LIBNNPACK_ORIGIN)/$(LIBNNPACK_SUBDIR)
+
+################################################################################
+# Library includes
+################################################################################
+LIBNNPACK_GLOBAL_INCLUDES-y += -I$(LIBNNPACK_SRC)/src
+LIBNNPACK_GLOBAL_INCLUDES-y += -I$(LIBNNPACK_SRC)/src/ref
+LIBNNPACK_GLOBAL_INCLUDES-y += -I$(LIBNNPACK_SRC)/include
+LIBNNPACK_GLOBAL_INCLUDES-y += -I$(LIBNNPACK_BASE)/include
+
+CINCLUDES-$(CONFIG_LIBNNPACK) += $(LIBNNPACK_GLOBAL_INCLUDES-y)
+CXXINCLUDES-$(CONFIG_LIBNNPACK) += $(LIBNNPACK_GLOBAL_INCLUDES-y)
+
+################################################################################
+# Global flags
+################################################################################
+# Suppress some warnings to make the build process look neater
+LIBNNPACK_SUPPRESS_FLAGS += -Wno-unused-parameter			\
+	-Wno-unused-variable -Wno-unused-value -Wno-unused-function 	\
+	-Wno-missing-field-initializers -Wno-implicit-fallthrough 	\
+	-Wno-cast-function-type -Wno-stringop-truncation 		\
+	-Wno-char-subscripts -Wno-sign-compare -Wno-parentheses		\
+	-Wno-deprecated-declarations -Wno-attributes
+
+LIBNNPACK_CFLAGS-y	+= $(LIBNNPACK_SUPPRESS_FLAGS) -Wno-pointer-to-int-cast -Wno-int-to-pointer-cast
+LIBNNPACK_CXXFLAGS-y	+= $(LIBNNPACK_SUPPRESS_FLAGS)
+
+LIBNNPACK_CFLAGS-y	+=  -D__linux__ -DCPUINFO_ARCH_X86
+LIBNNPACK_CXXFLAGS-y	+=  -D__linux__ -DCPUINFO_ARCH_X86
+
+LIBNNPACK_CFLAGS-$(CONFIG_LIBNNPACK_BACKEND_PSIMD)	+= -DNNP_BACKEND_PSIMD
+LIBNNPACK_CXXFLAGS-$(CONFIG_LIBNNPACK_BACKEND_PSIMD)	+= -DNNP_BACKEND_PSIMD
+
+LIBNNPACK_CFLAGS-$(CONFIG_LIBNNPACK_BACKEND_SCALAR)	+= -DNNP_BACKEND_SCALAR
+LIBNNPACK_CXXFLAGS-$(CONFIG_LIBNNPACK_BACKEND_SCALAR)	+= -DNNP_BACKEND_SCALAR
+
+#TODO : chose backend from config menu
+################################################################################
+# Library sources
+################################################################################
+
+LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/init.c
+LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/softmax-output.c
+LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/relu-input-gradient.c
+LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/fully-connected-inference.c
+LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/convolution-output.c
+#LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/neon/2d-winograd-8x8-3x3-fp16.c
+#LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/neon/winograd-f6k3.c
+#LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/neon/blas/c4gemm-conjb-transc.c
+#LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/neon/blas/h4gemm.c
+#LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/neon/blas/s4c2gemm.c
+#LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/neon/blas/s4gemm.c
+#LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/neon/blas/c4gemm.c
+#LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/neon/blas/s4c2gemm-conjb-transc.c
+#LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/neon/blas/conv1x1.c
+#LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/neon/blas/sgemm.c
+#LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/neon/blas/c4gemm-conjb.c
+#LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/neon/blas/sdotxf.c
+#LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/neon/blas/s4c2gemm-conjb.c
+#LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/neon/2d-winograd-8x8-3x3.c
+#LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/neon/relu.c
+LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/convolution-inference.c
+LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/ref/softmax-output.c|ref
+LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/ref/relu-input-gradient.c|ref
+LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/ref/convolution-output.c|ref
+LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/ref/max-pooling-output.c|ref
+LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/ref/convolution-kernel.c|ref
+LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/ref/fully-connected-output.c|ref
+LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/ref/relu-output.c|ref
+LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/ref/convolution-input-gradient.c|ref
+LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/ref/fft/aos.c|ref
+LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/ref/fft/inverse-dualreal.c|ref
+LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/ref/fft/forward-real.c|ref
+LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/ref/fft/soa.c|ref
+LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/ref/fft/forward-dualreal.c|ref
+LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/ref/fft/inverse-real.c|ref
+#LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/x86_64-fma/softmax.c|fma
+#LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/x86_64-fma/exp.c|fma
+LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/psimd/softmax.c|psimd
+LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/psimd/2d-fourier-16x16.c|psimd
+LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/psimd/winograd-f6k3.c|psimd
+LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/psimd/blas/c4gemm-conjb-transc.c|psimd
+LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/psimd/blas/s4c2gemm.c|psimd
+LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/psimd/blas/s4gemm.c|psimd
+LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/psimd/blas/c4gemm.c|psimd
+LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/psimd/blas/s4c2gemm-conjb-transc.c|psimd
+LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/psimd/blas/conv1x1.c|psimd
+LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/psimd/blas/sgemm.c|psimd
+LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/psimd/blas/shdotxf.c|psimd
+LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/psimd/blas/c4gemm-conjb.c|psimd
+LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/psimd/blas/sdotxf.c|psimd
+LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/psimd/blas/s4c2gemm-conjb.c|psimd
+LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/psimd/exp.c|psimd
+LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/psimd/2d-winograd-8x8-3x3.c|psimd
+LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/psimd/relu.c|psimd
+LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/psimd/fft-aos.c|psimd
+LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/psimd/fft-dualreal.c|psimd
+LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/psimd/fft-soa.c|psimd
+LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/psimd/fft-real.c|psimd
+LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/psimd/2d-fourier-8x8.c|psimd
+LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/fully-connected-output.c
+LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/relu-output.c
+LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/convolution-kernel-gradient.c
+LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/convolution-input-gradient.c
+LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/pooling-output.c
+LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/scalar/softmax.c|scalar
+LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/scalar/2d-fourier-16x16.c|scalar
+LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/scalar/winograd-f6k3.c|scalar
+LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/scalar/blas/s2gemm.c|scalar
+LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/scalar/blas/cgemm-conjb.c|scalar
+LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/scalar/blas/conv1x1.c|scalar
+LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/scalar/blas/cgemm-conjb-transc.c|scalar
+LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/scalar/blas/sgemm.c|scalar
+LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/scalar/blas/shdotxf.c|scalar
+LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/scalar/blas/sdotxf.c|scalar
+LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/scalar/blas/cgemm.c|scalar
+LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/scalar/blas/s2gemm-transc.c|scalar
+LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/scalar/2d-winograd-8x8-3x3.c|scalar
+LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/scalar/relu.c|scalar
+LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/scalar/fft-aos.c|scalar
+LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/scalar/fft-dualreal.c|scalar
+LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/scalar/fft-soa.c|scalar
+LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/scalar/fft-real.c|scalar
+LIBNNPACK_SRCS-y += $(LIBNNPACK_SRC)/src/scalar/2d-fourier-8x8.c|scalar
