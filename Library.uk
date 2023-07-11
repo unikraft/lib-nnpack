@@ -1,0 +1,6 @@
+name        := "nnpack"
+description := "An acceleration package for neural network computations."
+gitrepo     := "https://github.com/Maratyszcza/NNPACK.git"
+homepage    := "https://maratyszcza.github.io/NNPACK/"
+license     := "BSD-2-Clause"
+version     := 24b5530 sha256:1f11dbbfad78d0a4c39fe94e52a28c0821cb25f9880420bb304f6302f73fe002 https://github.com/Maratyszcza/NNPACK/archive/24b5530.tar.gz
